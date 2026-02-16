@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <title>3D Car Configurator</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 1. RESET & BASICS --- */
+        :root {
+            --ui-bg: rgba(20, 20, 20, 0.75);
+            --ui-border: rgba(255, 255, 255, 0.1);
+            --blur: 12px;
+            --accent: #00d2ff;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --font-stack: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Evita selecionar texto ao clicar rápido */
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden; /* Remove barras de rolagem */
+            font-family: var(--font-stack);
+            background-color: #000; /* Fundo preto enquanto carrega */
+        }
+
+        #app {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* --- 2. LOADING SCREEN --- */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #050505;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s ease-out;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        #loader {
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- 3. UI CONTAINER (Sidebar) --- */
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            width: 300px;
+            max-width: 90vw;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            pointer-events: none; /* Deixa passar clique nas áreas vazias */
+        }
+
+        /* Cartão de Vidro */
+        .glass-panel {
+            background: var(--ui-bg);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border: 1px solid var(--ui-border);
+            border-radius: 16px;
+            padding: 20px;
+            pointer-events: auto; /* Reativa cliques */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        /* --- 4. TYPOGRAPHY --- */
+        h1 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* --- 5. COLOR CONTROLS --- */
+        .color-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .color-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .color-btn:hover {
+            transform: scale(1.15);
+            border-color: white;
+        }
+
+        .color-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Custom Color Input wrapper */
+        .custom-color-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { 
+            border: 2px solid rgba(255,255,255,0.5); 
+            border-radius: 50%; 
+        }
+
+        /* --- 6. FINISH CONTROLS (Grid) --- */
+        .finish-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .finish-btn {
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .finish-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Estilos específicos dos acabamentos */
+        #btn-fosco { background: linear-gradient(145deg, #2b2b2b, #1a1a1a); color: #aaa; }
+        #btn-metalico { background: linear-gradient(135deg, #4c4c4c, #999, #4c4c4c); }
+        #btn-verniz { background: linear-gradient(to bottom, #444, #000); border: 1px solid rgba(255,255,255,0.3); }
+        #btn-cromado { background: linear-gradient(135deg, #e0e0e0, #ffffff, #a0a0a0); color: #333; }
+
+    </style>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <div id="ui-container">
+        
+        <div class="glass-panel">
+            <h1>Toyota AE86</h1>
+            <h3 id="selected-part">Select a part to edit</h3>
+        </div>
+
+        <div class="glass-panel">
+            
+            <label>Factory Colors</label>
+            <div class="color-group">
+                <button id="btn-white" class="color-btn" style="background-color: #ffffff;" title="Panda White"></button>
+                <button id="btn-red" class="color-btn" style="background-color: #d80000;" title="Racing Red"></button>
+                <button id="btn-blue" class="color-btn" style="background-color: #00195c;" title="Midnight Blue"></button>
+            </div>
+
+            <label>Custom Paint</label>
+            <div class="custom-color-wrapper">
+                <input type="color" id="html-color-picker" value="#ffffff">
+                <span style="font-size: 11px; color: var(--text-muted);">Pick any color</span>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--ui-border); margin: 20px 0;">
+
+            <label>Material Finish</label>
+            <div class="finish-grid">
+                <button id="btn-fosco" class="finish-btn">Matte</button>
+                <button id="btn-metalico" class="finish-btn">Metallic</button>
+                <button id="btn-verniz" class="finish-btn">Gloss</button>
+                <button id="btn-cromado" class="finish-btn">Chrome</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <div id="loader">Loading Assets... 0%</div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+
+    <script>
+        // Pequeno script apenas para feedback visual dos botões
+        // (Isso não afeta o 3D, apenas deixa a UI bonita)
+        const buttons = document.querySelectorAll('.finish-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                buttons.forEach(b => b.style.borderColor = 'rgba(255,255,255,0.1)');
+                this.style.borderColor = '#00d2ff'; // Highlight selection
+            });
+        });
+    </script>
+</body>
+</html>
