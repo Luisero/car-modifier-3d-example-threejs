@@ -23,8 +23,8 @@ const CONFIG = {
         idleTimeBeforeRotate: 5000,
     },
     assets: {
-        envMap: '/public/empty_warehouse_01_4k.hdr',
-        model: '/public/1985_toyota_sprinter_trueno_ae86/scene.gltf', // ou URL externa
+        envMap: 'empty_warehouse_01_4k.hdr',
+        model: '/1985_toyota_sprinter_trueno_ae86/scene.gltf', // ou URL externa
         scale: 70
     },
     colors: {
